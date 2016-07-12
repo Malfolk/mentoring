@@ -7,7 +7,7 @@ import com.epam.mentoring.module1.bean.furniture.Furniture;
 /**
  * @author Siarhei_Karytka
  */
-public interface PartsCalculator
+public interface PriceCalculator
 {
-	public void calculateParts(List<Furniture> furnitureList);
+	public int calculatePrice(List<Furniture> furnitureList);
 }

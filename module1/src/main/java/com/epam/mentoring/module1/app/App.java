@@ -3,23 +3,20 @@ package com.epam.mentoring.module1.app;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.epam.mentoring.module1.bean.furniture.AbstractFurniture;
-import com.epam.mentoring.module1.bean.furniture.Bed;
-import com.epam.mentoring.module1.bean.furniture.Chair;
-import com.epam.mentoring.module1.bean.furniture.Nightstand;
+import com.epam.mentoring.module1.bean.furniture.Furniture;
+import com.epam.mentoring.module1.bean.furniture.FurnitureFactory;
 
 public class App
 {
     public static void main( String[] args )
     {
-        List<AbstractFurniture> furnitureList = new LinkedList<AbstractFurniture>();
-        furnitureList.add(new Bed());
-        furnitureList.add(new Nightstand());
-        furnitureList.add(new Chair());
+        List<Furniture> furnitureList = new LinkedList<Furniture>();
+        furnitureList.add(FurnitureFactory.getBed());
 
-        PartsCalculator partsCalculator = new PartsCalculator();
+        PriceCalculator priceCalculator = new Calculator();
+        priceCalculator.calculatePrice(furnitureList);
 
-        int partsCount = partsCalculator.calculateParts(furnitureList);
-        System.out.print("Required parts count: " + partsCount);
+        PartsCalculator partsCalculator = new Calculator();
+        partsCalculator.calculateParts(furnitureList);
     }
 }
