@@ -1,6 +1,7 @@
 package com.epam.mentoring.module1.app;
 
 import java.util.List;
+import java.util.Map;
 
 import com.epam.mentoring.module1.bean.furniture.Furniture;
 
@@ -9,5 +10,5 @@ import com.epam.mentoring.module1.bean.furniture.Furniture;
  */
 public interface PartsCalculator
 {
-	public void calculateParts(List<Furniture> furnitureList);
+	public Map<String, Integer> calculateParts(List<Furniture> furnitureList);
 }

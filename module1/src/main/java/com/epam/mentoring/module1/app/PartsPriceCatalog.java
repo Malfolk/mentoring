@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.epam.mentoring.module1.bean.furniture.parts.AbstractPart;
 import com.epam.mentoring.module1.bean.furniture.parts.Leg;
 import com.epam.mentoring.module1.bean.furniture.parts.Side;
 import com.epam.mentoring.module1.bean.furniture.parts.Top;
@@ -21,19 +22,8 @@ public class PartsPriceCatalog
 		prices.put(Top.class.getName(), 20);
 	}
 
-	//////////////////////////////////////////////
-	//
-	// Getters & Setters
-	//
-	//////////////////////////////////////////////
-
-	public Map<String, Integer> getPrices()
+	public int getPrice(AbstractPart part)
 	{
-		return prices;
-	}
-
-	public void setPrices(Map<String, Integer> prices)
-	{
-		this.prices = prices;
+		return this.prices.get(part.getClass().getName());
 	}
 }

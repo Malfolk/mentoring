@@ -15,31 +15,27 @@ public class Calculator implements PartsCalculator, PriceCalculator
 {
 	PartsPriceCatalog catalog = new PartsPriceCatalog();
 
-	public void calculateParts(List<Furniture> furnitureList)
+	public Map<String, Integer> calculateParts(List<Furniture> furnitureList)
 	{
 		Map<String, Integer> parts = new HashMap<String, Integer>();
 		for(Furniture furniture : furnitureList)
 		{
-			for(AbstractPart part : furniture.getParts())
+			for(Map.Entry<AbstractPart, Integer> entry : furniture.getParts().entrySet())
 			{
-				String name = part.getClass().getName();
+				String name = entry.getKey().getClass().getName();
 				if(parts.get(name) == null)
 				{
-					parts.put(name, 1);
+					parts.put(name, entry.getValue());
 				}
 				else
 				{
-					int count = parts.get(name);
-					count++;
+					int count = parts.get(name) + entry.getValue();
 					parts.put(name, count);
 				}
 			}
 		}
 
-		for(Map.Entry entry : parts.entrySet())
-		{
-			System.out.println(entry.getKey() + " " + entry.getValue());
-		}
+		return parts;
 	}
 
 	public int calculatePrice(List<Furniture> furnitureList)
@@ -47,13 +43,13 @@ public class Calculator implements PartsCalculator, PriceCalculator
 		int price = 0;
 		for(Furniture furniture : furnitureList)
 		{
-			for(AbstractPart part : furniture.getParts())
+			for(Map.Entry<AbstractPart, Integer> entry : furniture.getParts().entrySet())
 			{
-				Map<String, Integer> prices = catalog.getPrices();
-				price = price + prices.get(part.getClass().getName());
+				int itemPrice = catalog.getPrice(entry.getKey());
+				price = price + itemPrice * entry.getValue();
 			}
 		}
-		System.out.println(price + "$");
+
 		return price;
 	}
 }

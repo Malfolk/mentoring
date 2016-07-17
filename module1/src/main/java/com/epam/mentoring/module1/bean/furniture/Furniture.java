@@ -1,7 +1,9 @@
 package com.epam.mentoring.module1.bean.furniture;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import com.epam.mentoring.module1.bean.furniture.parts.AbstractPart;
 
@@ -10,7 +12,7 @@ import com.epam.mentoring.module1.bean.furniture.parts.AbstractPart;
  */
 public class Furniture
 {
-	List<AbstractPart> parts = new LinkedList<AbstractPart>();
+	Map<AbstractPart, Integer> parts = new HashMap<AbstractPart, Integer>();
 
 	//////////////////////////////////////////////
 	//
@@ -18,12 +20,12 @@ public class Furniture
 	//
 	//////////////////////////////////////////////
 
-	public List<AbstractPart> getParts()
+	public Map<AbstractPart, Integer> getParts()
 	{
 		return parts;
 	}
 
-	public void setParts(List<AbstractPart> parts)
+	public void setParts(Map<AbstractPart, Integer> parts)
 	{
 		this.parts = parts;
 	}
