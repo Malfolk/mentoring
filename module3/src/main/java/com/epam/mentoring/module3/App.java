@@ -1,7 +1,7 @@
-package com.epam.module2;
+package com.epam.mentoring.module3;
 
-import com.epam.module2.builder.SqlQueryBuilder;
-import com.epam.module2.factory.SQLQueryBuilderFactory;
+import com.epam.mentoring.module3.builder.SqlQueryBuilder;
+import com.epam.mentoring.module3.factory.SQLQueryBuilderFactory;
 
 /**
  * Hello world!

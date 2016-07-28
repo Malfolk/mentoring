@@ -1,16 +1,13 @@
-package com.epam.module2.builder;
+package com.epam.mentoring.module3.builder;
 
 /**
  * @author Siarhei_Karytka
  */
 public class OracleSqlQueryBuilder extends SqlQueryBuilder
 {
-	public SqlQueryBuilder limit(int limit)
+	protected void buildLimitStatement()
 	{
-		limitBuilder.append("WHERE ROWNUM <= ");
-		limitBuilder.append(limit);
-		limitBuilder.append(";");
-
-		return this;
+		stringBuilder.append(" WHERE ROWNUM <= ");
+		stringBuilder.append(limit);
 	}
 }

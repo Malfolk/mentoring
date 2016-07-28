@@ -1,26 +1,30 @@
-package com.epam.module2.builder;
+package com.epam.mentoring.module3.builder;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
-import com.epam.module2.factory.SQLQueryBuilderFactory;
+import com.epam.mentoring.module3.builder.statementholders.Join;
+import com.epam.mentoring.module3.builder.statementholders.Output;
+import com.epam.mentoring.module3.builder.statementholders.TableColumn;
 
 /**
  * @author Siarhei_Karytka
  */
 public abstract class SqlQueryBuilder
 {
-	protected StringBuilder fromBuilder = new StringBuilder();
-	protected StringBuilder joinBuilder = new StringBuilder();
-	protected StringBuilder outputBuilder = new StringBuilder();
-	protected StringBuilder groupByBuilder = new StringBuilder();
-	protected StringBuilder orderByBuilder = new StringBuilder();
-	protected StringBuilder limitBuilder = new StringBuilder();
+	protected StringBuilder stringBuilder = new StringBuilder();
 	private Map<String, String> tableAliasMap = new HashMap<String, String>();
-	private String lastOperation;
-	private String currentOperation;
 
-	public abstract SqlQueryBuilder limit(int limit);
+	protected String fromTable;
+	protected int limit;
+	protected List<Join> joinList = new LinkedList<Join>();
+	protected List<Output> outputList = new LinkedList<Output>();
+	protected List<TableColumn> groupByList = new LinkedList<TableColumn>();
+	protected List<TableColumn> orderByList = new LinkedList<TableColumn>();
+
+	protected abstract void buildLimitStatement();
 
 	public enum Aggregate
 	{
@@ -35,128 +39,196 @@ public abstract class SqlQueryBuilder
 
 	public SqlQueryBuilder from(String tableName)
 	{
-		fromBuilder.append("FROM ");
-		fromBuilder.append(tableName);
+		this.fromTable = tableName;
 		return this;
 	}
 
-	public SqlQueryBuilder join(SqlQueryBuilder.JOINS joinType, String leftTable, String leftTableID, String rightTable,
-			String rightTableID) throws Exception
+	public SqlQueryBuilder join(SqlQueryBuilder.JOINS joinType, String leftTableName, String leftTableColumnName, String rightTableName,
+			String rightTableColumnName)
 	{
-		currentOperation = "join";
-		if(currentOperation.equals(lastOperation))
-		{
-			joinBuilder.append(" ");
-		}
-		switch (joinType)
-		{
-			case INNER_JOIN:
-				joinBuilder.append("JOIN");
-				break;
-			case LEFT_JOIN:
-				joinBuilder.append("LEFT JOIN");
-				break;
-			default:
-				throw new Exception("Unsupported JOIN type");
-		}
-		joinBuilder.append(" ");
-		joinBuilder.append(rightTable);
-		joinBuilder.append(" ");
-		joinBuilder.append(getTableAlias(rightTable));
-		joinBuilder.append(" ");
-		joinBuilder.append("ON ");
-		joinBuilder.append(getTableAlias(leftTable));
-		joinBuilder.append(".");
-		joinBuilder.append(leftTableID);
-		joinBuilder.append(" = ");
-		joinBuilder.append(getTableAlias(rightTable));
-		joinBuilder.append(".");
-		joinBuilder.append(rightTableID);
+		TableColumn leftTableColumn = new TableColumn(leftTableName, leftTableColumnName);
+		TableColumn rightTableColumn = new TableColumn(rightTableName, rightTableColumnName);
+		Join join = new Join(joinType, leftTableColumn, rightTableColumn);
+		joinList.add(join);
 
-		lastOperation = currentOperation;
 		return this;
 	}
 
 	public SqlQueryBuilder output(String tableName, String columnName)
 	{
-		currentOperation = "output";
+		output(tableName, columnName, null);
 
-		decideToSeparateValues(outputBuilder);
-		outputBuilder.append(getTableAlias(tableName));
-		outputBuilder.append(".");
-		outputBuilder.append(columnName);
-
-		lastOperation = currentOperation;
 		return this;
 	}
 
 	public SqlQueryBuilder output(String tableName, String columnName, Aggregate aggregateType)
 	{
-		currentOperation = "output";
-		decideToSeparateValues(outputBuilder);
-		switch (aggregateType)
-		{
-			case SUM:
-				outputBuilder.append("SUM");
-				outputBuilder.append("(");
-				outputBuilder.append(getTableAlias(tableName));
-				outputBuilder.append(".");
-				outputBuilder.append(columnName);
-				outputBuilder.append(")");
-		}
+		TableColumn tableColumn = new TableColumn(tableName, columnName);
+		Output output = new Output(aggregateType, tableColumn);
+		outputList.add(output);
 
-		lastOperation = currentOperation;
 		return this;
 	}
 
 	public SqlQueryBuilder groupBy(String tableName, String columnName)
 	{
-		currentOperation = "groupBy";
-		if(!currentOperation.equals(lastOperation))
-		{
-			groupByBuilder.append("GROUP BY ");
-		}
-		decideToSeparateValues(groupByBuilder);
-		groupByBuilder.append(getTableAlias(tableName));
-		groupByBuilder.append(".");
-		groupByBuilder.append(columnName);
+		TableColumn tableColumn = new TableColumn(tableName, columnName);
+		groupByList.add(tableColumn);
 
-		lastOperation = currentOperation;
 		return this;
 	}
 
 	public SqlQueryBuilder orderBy(String tableName, String columnName)
 	{
-		currentOperation = "orderBy";
-		if(!currentOperation.equals(lastOperation))
-		{
-			orderByBuilder.append("ORDER BY ");
-		}
-		decideToSeparateValues(orderByBuilder);
-		orderByBuilder.append(getTableAlias(tableName));
-		orderByBuilder.append(".");
-		orderByBuilder.append(columnName);
+		TableColumn tableColumn = new TableColumn(tableName, columnName);
+		orderByList.add(tableColumn);
 
-		lastOperation = currentOperation;
 		return this;
 	}
 
-	public String build()
+	public SqlQueryBuilder limit(int limit)
 	{
-		StringBuilder builder = new StringBuilder();
-		builder.append("SELECT ");
-		builder.append(outputBuilder.toString());
-		builder.append(" ");
-		builder.append(fromBuilder.toString());
-		builder.append(" ");
-		builder.append(joinBuilder.toString());
-		builder.append(" ");
-		builder.append(groupByBuilder.toString());
-		builder.append(" ");
-		builder.append(orderByBuilder.toString());
-		builder.append(" ");
-		builder.append(limitBuilder.toString());
-		return  builder.toString();
+		this.limit = limit;
+
+		return this;
+	}
+
+	public String build() throws Exception
+	{
+		stringBuilder.append("SELECT");
+		buildOutputStatement();
+		buildFromStatement();
+		buildJoinStatement();
+		buildGroupByStatement();
+		buildOrderByStatement();
+		buildLimitStatement();
+		stringBuilder.append(";");
+		return  stringBuilder.toString();
+	}
+
+	protected void buildFromStatement()
+	{
+		stringBuilder.append(" FROM ");
+		stringBuilder.append(fromTable);
+		stringBuilder.append(" ");
+		stringBuilder.append(getTableAlias(fromTable));
+	}
+
+	protected void buildOutputStatement()
+	{
+		for(Output output : outputList){
+			appendOutputColumn(output, isLast(output, outputList));
+		}
+	}
+
+	protected void buildJoinStatement() throws Exception
+	{
+		for(Join join : joinList)
+		{
+			appendJoinStatement(join);
+		}
+	}
+
+	protected void buildGroupByStatement()
+	{
+		if(groupByList.size() > 0)
+		{
+			stringBuilder.append(" GROUP BY");
+		}
+		for(TableColumn tableColumn : groupByList)
+		{
+			appendTableAliasAndColumnStatement(tableColumn, isLast(tableColumn, groupByList));
+		}
+	}
+
+	protected void buildOrderByStatement()
+	{
+		if(orderByList.size() > 0)
+		{
+			stringBuilder.append(" ORDER BY");
+		}
+		for(TableColumn tableColumn : orderByList)
+		{
+			appendTableAliasAndColumnStatement(tableColumn, isLast(tableColumn, orderByList));
+		}
+	}
+
+	private void appendOutputColumn(Output output, boolean isLast)
+	{
+		SqlQueryBuilder.Aggregate aggregateType = output.getAggregateType();
+		if( aggregateType != null )
+		{
+			wrapWithAggregateAndAppend(aggregateType, output.getTableColumn());
+		}
+		else
+		{
+			appendTableAliasAndColumnStatement(output.getTableColumn(), true);
+		}
+		if(!isLast)
+		{
+			stringBuilder.append(",");
+		}
+	}
+
+	private void appendTableAliasAndColumnStatement(TableColumn tableColumn, boolean isLast)
+	{
+		stringBuilder.append(" ");
+		stringBuilder.append(getTableAlias(tableColumn.getTableName()));
+		stringBuilder.append(".");
+		stringBuilder.append(tableColumn.getColumnName());
+		if(!isLast)
+		{
+			stringBuilder.append(",");
+		}
+	}
+
+	private void appendJoinStatement(Join join) throws Exception
+	{
+		stringBuilder.append(" ");
+		switch (join.getJoinType())
+		{
+			case INNER_JOIN:
+				stringBuilder.append("JOIN");
+				break;
+			case LEFT_JOIN:
+				stringBuilder.append("LEFT JOIN");
+				break;
+			default:
+				throw new Exception("Unsupported JOIN type");
+		}
+		stringBuilder.append(" ");
+		appendTableWithAliasStatement(join.getRightTableColumn());
+		stringBuilder.append(" ON");
+		appendTableAliasAndColumnStatement(join.getLeftTableColumn(), true);
+		stringBuilder.append(" =");
+		appendTableAliasAndColumnStatement(join.getRightTableColumn(), true);
+
+	}
+
+	private void appendTableWithAliasStatement(TableColumn tableColumn)
+	{
+		stringBuilder.append(tableColumn.getTableName());
+		stringBuilder.append(" ");
+		stringBuilder.append(getTableAlias(tableColumn.getTableName()));
+	}
+
+	private void wrapWithAggregateAndAppend(Aggregate aggregateType, TableColumn tableColumn)
+	{
+		switch (aggregateType)
+		{
+			case SUM:
+				stringBuilder.append(" SUM");
+				stringBuilder.append("(");
+				stringBuilder.append(getTableAlias(tableColumn.getTableName()));
+				stringBuilder.append(".");
+				stringBuilder.append(tableColumn.getColumnName());
+				stringBuilder.append(")");
+		}
+	}
+
+	private boolean isLast(Object object, List list)
+	{
+		return list.indexOf(object) == (list.size() -1);
 	}
 
 	private String getTableAlias(String tableName)
@@ -171,10 +243,6 @@ public abstract class SqlQueryBuilder
 				{
 					return alias;
 				}
-				else
-				{
-					continue;
-				}
 			}
 			else
 			{
@@ -184,11 +252,5 @@ public abstract class SqlQueryBuilder
 
 		}
 		return null;
-	}
-
-	private void decideToSeparateValues(StringBuilder builder)
-	{
-		if(currentOperation.equals(lastOperation))
-			builder.append(", ");
 	}
 }

@@ -1,16 +1,13 @@
-package com.epam.module2.builder;
+package com.epam.mentoring.module3.builder;
 
 /**
  * @author Siarhei_Karytka
  */
 public class MysqlSqlQueryBuilder extends SqlQueryBuilder
 {
-	public SqlQueryBuilder limit(int limit)
+	protected void buildLimitStatement()
 	{
-		limitBuilder.append("LIMIT ");
-		limitBuilder.append(limit);
-		limitBuilder.append(";");
-
-		return this;
+		stringBuilder.append(" LIMIT ");
+		stringBuilder.append(limit);
 	}
 }

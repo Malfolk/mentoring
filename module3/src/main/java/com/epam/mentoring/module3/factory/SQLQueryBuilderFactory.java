@@ -1,9 +1,9 @@
-package com.epam.module2.factory;
+package com.epam.mentoring.module3.factory;
 
-import com.epam.module2.builder.MssqlSqlQueryBuilder;
-import com.epam.module2.builder.MysqlSqlQueryBuilder;
-import com.epam.module2.builder.OracleSqlQueryBuilder;
-import com.epam.module2.builder.SqlQueryBuilder;
+import com.epam.mentoring.module3.builder.MssqlSqlQueryBuilder;
+import com.epam.mentoring.module3.builder.MysqlSqlQueryBuilder;
+import com.epam.mentoring.module3.builder.OracleSqlQueryBuilder;
+import com.epam.mentoring.module3.builder.SqlQueryBuilder;
 
 /**
  * @author Siarhei_Karytka
