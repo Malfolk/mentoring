@@ -1,6 +1,7 @@
 package com.epam.mentoring.module6;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import sun.plugin2.message.Message;
@@ -8,40 +9,72 @@ import sun.plugin2.message.Message;
 /**
  * @author Siarhei_Karytka
  */
-public class MessageServiceAdaptor
+public class MessageServiceAdaptor implements Iterator
 {
 	MessageService messageService;
 
 	private int pageSize;
+	private int index;
+	private int messageID;
+	private List<Message> messageList = new ArrayList<Message>();
 
-	public MessageServiceAdaptor(int pageSize)
+	public MessageServiceAdaptor(int pageSize) throws Exception
 	{
+		if(pageSize <= 0)
+		{
+			throw new Exception("Page size should be a positive value greater than 0");
+		}
 		this.pageSize = pageSize;
 	}
 
-	List<Message> getMessages()
+	public boolean hasNext()
 	{
-		List<Message> messageList = new LinkedList<Message>();
-
-		int startID = 0;
-		boolean hasMoreMessages = true;
-
-		while (hasMoreMessages)
+		if(messageList.isEmpty())
 		{
-			List<Message> pagedMessageList = messageService.list(startID, pageSize);
-			if(pagedMessageList.size() == pageSize)
+			fillMessageList();
+		}
+		boolean result = false;
+		if(index < messageList.size())
+		{
+			result = true;
+		}
+
+		return result;
+	}
+
+	public Object next()
+	{
+		if(hasNext())
+		{
+			Message message = messageList.get(index);
+			if(index == (pageSize - 1)) // last element in current collection
 			{
-				startID = pagedMessageList.get(pagedMessageList.size() - 1).getID();
+				messageID = message.getID();
+				fillMessageList();
 			}
 			else
 			{
-				hasMoreMessages = false;
+				index++;
 			}
 
-			messageList.addAll(pagedMessageList);
+			return message;
 		}
+		else
+		{
+			return null;
+		}
+	}
 
+	private void fillMessageList()
+	{
+		messageList.clear();
+		messageList.addAll(messageService.list(messageID, pageSize));
+		index = 0;
+	}
 
-		return messageList;
+	// just to prevent jdk 5 compilation error
+	public void remove()
+	{
+
 	}
 }
