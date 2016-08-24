@@ -9,6 +9,7 @@ import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import com.epam.mentoring.module5.loaders.MyClassloader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,29 +28,15 @@ public class App
 		System.out.print("Enter full path to .jar file:");
 
 		String pathToJar = br.readLine();
-		JarFile jarFile = new JarFile(pathToJar);
-		Enumeration<JarEntry> entries = jarFile.entries();
+		MyClassloader myClassloader = new MyClassloader(pathToJar);
 
-		URL[] urls = { new URL("jar:file:" + pathToJar + "!/") };
-		URLClassLoader classLoader = URLClassLoader.newInstance(urls);
+		System.out.print("Enter full class name:");
+		String fullClassName = br.readLine();
+		Class clazz = myClassloader.loadClass(fullClassName);
+		Object o = clazz.newInstance();
 
-		while (entries.hasMoreElements())
-		{
-			JarEntry jarEntry = entries.nextElement();
-			if (jarEntry.isDirectory() || !jarEntry.getName().endsWith(".class"))
-			{
-				continue;
-			}
-			// -6 because of .class
-			String className = jarEntry.getName().substring(0, jarEntry.getName().length() - 6);
-			className = className.replace('/', '.');
-			Class c = classLoader.loadClass(className);
-			c.newInstance();
-			logger.trace(className + "loaded");
-		}
+		logger.trace("-----" + clazz.getName() + " loaded");
 
-		logger.trace("start App");
-		System.out.println("Hello World!");
-		logger.trace("exit App");
+
 	}
 }
